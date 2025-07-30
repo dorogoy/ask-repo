@@ -18,15 +18,19 @@ Ask questions to AI agents about the full content of public GitHub repositories.
 
 ## Installation
 
-1. Ensure you have `goose` installed and available in your PATH.
+1. Ensure you have `goose`, the CLI version, installed and available in your PATH.
 2. Place the `ask-repo` script in a directory included in your PATH (e.g., `~/bin` or `/usr/local/bin`).
 3. Make the script executable: `chmod +x ask-repo`
 
 ## Usage
 
 ```bash
-ask-repo [github_url|user/repo]
+ask-repo [github_url|user/repo] [-- goose options]
 ```
+
+- You can pass additional options to the underlying `goose session` command by using `--`.
+- Use `ask-repo --version` to print the script version.
+- Use `ask-repo --upgrade` to automatically update the script to the latest version from GitHub.
 
 ### Examples
 
@@ -46,6 +50,24 @@ ask-repo [github_url|user/repo]
 
     ```bash
     ask-repo
+    ```
+
+- **Pass options to goose:**
+
+    ```bash
+    ask-repo dorogoy/ask-repo -- --temperature 0.2
+    ```
+
+- **Show script version:**
+
+    ```bash
+    ask-repo --version
+    ```
+
+- **Upgrade to the latest version:**
+
+    ```bash
+    ask-repo --upgrade
     ```
 
 ## How it Works

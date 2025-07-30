@@ -1,11 +1,13 @@
+
 #!/bin/bash
+set -euo pipefail
 
 # Default repository
 DEFAULT_REPO="gitmcp.io/docs"
 
 # Function to show usage
 usage() {
-  echo "Usage: ask-repo [github_url|user/repo]"
+  echo "Usage: ask-repo [github_url|user/repo] [-- goose options]"
   echo "Ask questions to AI agents about the full content of public GitHub repositories."
   echo ""
   echo "Supported formats:"
@@ -19,47 +21,86 @@ usage() {
   echo "  ask-repo # Uses the default repository"
   echo "  ask-repo dorogoy/ask-repo"
   echo "  ask-repo https://github.com/dorogoy/ask-repo.git"
+  echo "  ask-repo dorogoy/ask-repo -- --temperature 0.2"
+  echo "  ask-repo --version"
+  echo "  ask-repo --upgrade"
   exit 1
 }
 
+
+# Upgrade flag
+if [[ "${1:-}" == "-u" || "${1:-}" == "--upgrade" ]]; then
+  SCRIPT_PATH="$(realpath "$0")"
+  TMP_FILE="$(mktemp)"
+  echo "Upgrading ask-repo from GitHub..."
+  if curl -fsSL "https://raw.githubusercontent.com/dorogoy/ask-repo/master/ask-repo" -o "$TMP_FILE"; then
+    chmod +x "$TMP_FILE"
+    mv "$TMP_FILE" "$SCRIPT_PATH"
+    echo "ask-repo was upgraded successfully."
+    exit 0
+  else
+    echo "Error: Failed to download the latest version from GitHub." >&2
+    rm -f "$TMP_FILE"
+    exit 1
+  fi
+fi
+
+# Version flag
+if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
+  echo "ask-repo version 1.0.0"
+  exit 0
+fi
+
 # Check for help flag
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
 fi
 
 # Check if goose is installed
 if ! command -v goose &> /dev/null; then
-  echo "Error: goose is not installed or not in your PATH."
-  echo "Please install it to use this script."
+  echo "Error: goose is not installed or not in your PATH." >&2
+  echo "Please install it to use this script." >&2
   exit 1
 fi
 
-REPO_INPUT="$1"
-REPO_URL=""
-
-# If no input, use the default
-if [ -z "$REPO_INPUT" ]; then
+# Parse arguments
+REPO_INPUT=""
+GOOSE_ARGS=()
+if [[ $# -eq 0 ]]; then
   REPO_URL="$DEFAULT_REPO"
 else
-  # Normalize the input
-  REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\///' | sed 's/\.git$//' | sed 's/\/$//')
-
-  # Validate the format
-  if [[ ! "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
-    echo "Error: Invalid repository format."
-    usage
+  for arg in "$@"; do
+    if [[ "$arg" == "--" ]]; then
+      shift
+      GOOSE_ARGS=("$@")
+      break
+    fi
+    if [[ -z "$REPO_INPUT" ]]; then
+      REPO_INPUT="$arg"
+      shift
+    fi
+  done
+  # Trim whitespace
+  REPO_INPUT="$(echo "$REPO_INPUT" | xargs)"
+  if [[ -z "$REPO_INPUT" ]]; then
+    REPO_URL="$DEFAULT_REPO"
+  else
+    # Normalize the input
+    REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\///' | sed 's/\.git$//' | sed 's/\/$//')
+    # Validate the format
+    if [[ ! "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+      echo "Error: Invalid repository format: '$REPO_INPUT'" >&2
+      usage
+    fi
+    REPO_URL="https://gitmcp.io/$REPO_PATH"
   fi
-  REPO_URL="https://gitmcp.io/$REPO_PATH"
 fi
 
 # Confirmation message
 echo "Endpoint: $REPO_URL"
 
-# Execute goose session
-goose session --with-remote-extension "$REPO_URL"
-
-# Error handling for goose command
-if [ $? -ne 0 ]; then
-  echo "Error: goose command failed."
+# Execute goose session with any extra arguments
+if ! goose session --with-remote-extension "$REPO_URL" "${GOOSE_ARGS[@]}"; then
+  echo "Error: goose command failed." >&2
   exit 1
 fi
