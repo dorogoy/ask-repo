@@ -49,7 +49,7 @@ else
     echo "Error: Invalid repository format."
     usage
   fi
-  REPO_URL="gitmcp.io/$REPO_PATH"
+  REPO_URL="https://gitmcp.io/$REPO_PATH"
 fi
 
 # Confirmation message
