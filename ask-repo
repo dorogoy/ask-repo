@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Default repository
+DEFAULT_REPO="gitmcp.io/docs"
+
+# Function to show usage
+usage() {
+  echo "Usage: ask-repo [github_url|user/repo]"
+  echo "Ask questions to AI agents about the full content of public GitHub repositories."
+  echo ""
+  echo "Supported formats:"
+  echo "  - github.com/user/repo"
+  echo "  - https://github.com/user/repo"
+  echo "  - user/repo"
+  echo ""
+  echo "If no repository is provided, it defaults to asking questions about the gitmcp.io documentation."
+  exit 1
+}
+
+# Check for goose installation
+if ! command -v goose &> /dev/null; then
+  echo "Error: goose is not installed. Please install it to use this script."
+  exit 1
+fi
+
+# Parse arguments
+if [ -z "$1" ]; then
+  REPO_PATH=$DEFAULT_REPO
+  echo "No repository provided. Using default: $REPO_PATH"
+else
+  REPO_INPUT=$1
+  # Normalize the input
+  REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https|http):\/\/github.com\///' | sed -E 's/\.git$//' | sed 's/\/*$//')
+
+  # Validate format
+  if ! [[ "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+    echo "Error: Invalid repository format."
+    usage
+  fi
+  REPO_PATH="gitmcp.io/$REPO_PATH"
+fi
+
+# Confirmation message
+echo "Endpoint: $REPO_PATH"
+
+# Execute goose session
+goose session --with-remote-extension "$REPO_PATH"
+
+# Error handling for goose command
+if [ $? -ne 0 ]; then
+  echo "Error: goose command failed."
+  exit 1
+fi
