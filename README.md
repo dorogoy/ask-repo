@@ -4,8 +4,8 @@ Ask questions to AI agents about the full content of public GitHub repositories.
 
 ## Installation
 
-1.  Ensure you have `goose` installed.
-2.  Place the `ask-repo` script in a directory that is in your `PATH` (e.g., `~/bin`).
+1.  Ensure you have `goose` installed and available in your PATH.
+2.  Place the `ask-repo` script in a directory included in your PATH (e.g., `~/bin` or `/usr/local/bin`).
 3.  Make the script executable: `chmod +x ask-repo`
 
 ## Usage
@@ -16,28 +16,40 @@ ask-repo [github_url|user/repo]
 
 ### Examples
 
--   `ask-repo github.com/dorogoy/ask-repo`
--   `ask-repo https://github.com/dorogoy/ask-repo`
--   `ask-repo dorogoy/ask-repo`
--   `ask-repo` (defaults to `gitmcp.io/docs`)
+-   **Ask about a specific repository:**
+
+    ```bash
+    ask-repo https://github.com/dorogoy/ask-repo
+    ```
+
+-   **Use the shorthand format:**
+
+    ```bash
+    ask-repo dorogoy/ask-repo
+    ```
+
+-   **Use the default repository (`gitmcp.io/docs`):**
+
+    ```bash
+    ask-repo
+    ```
 
 ## How it Works
 
-The script takes a GitHub repository URL or a `user/repo` string as input, normalizes it, and then uses the `goose` command to start a session with the `gitmcp.io` extension. This allows you to ask questions about the repository's content.
+The script takes a GitHub repository URL or a `user/repo` string as input, normalizes it, and then constructs a `gitmcp.io` URL. It then initiates a `goose` session with the appropriate remote extension, allowing you to interact with the repository's content.
 
 ## Error Handling
 
 The script includes error handling for:
 
--   Invalid repository formats
--   Missing `goose` installation
-
-## Requirements
-
--   [goose](https://github.com/gemini-cli/goose) must be installed.
+-   **Invalid repository formats:** If the input doesn't match the expected formats, it will display a usage message.
+-   **Missing `goose` installation:** It checks for the `goose` command and provides an error message if it's not found.
+-   **`goose` command failures:** If the `goose` session fails to start, it will report an error.
 
 ## Example Questions
 
+Once the session starts, you can ask questions like:
+
 -   "What is the main purpose of this repository?"
--   "Summarize the README file."
--   "Where is the main entry point of the application?"
+-   "Show me the implementation of the `ask-repo` function."
+-   "What are the main dependencies of this project?"

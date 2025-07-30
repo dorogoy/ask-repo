@@ -13,38 +13,50 @@ usage() {
   echo "  - https://github.com/user/repo"
   echo "  - user/repo"
   echo ""
-  echo "If no repository is provided, it defaults to asking questions about the gitmcp.io documentation."
+  echo "If no repository is provided, it defaults to: $DEFAULT_REPO"
+  echo ""
+  echo "Examples:"
+  echo "  ask-repo # Uses the default repository"
+  echo "  ask-repo dorogoy/ask-repo"
+  echo "  ask-repo https://github.com/dorogoy/ask-repo.git"
   exit 1
 }
 
-# Check for goose installation
+# Check for help flag
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  usage
+fi
+
+# Check if goose is installed
 if ! command -v goose &> /dev/null; then
-  echo "Error: goose is not installed. Please install it to use this script."
+  echo "Error: goose is not installed or not in your PATH."
+  echo "Please install it to use this script."
   exit 1
 fi
 
-# Parse arguments
-if [ -z "$1" ]; then
-  REPO_PATH=$DEFAULT_REPO
-  echo "No repository provided. Using default: $REPO_PATH"
-else
-  REPO_INPUT=$1
-  # Normalize the input
-  REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https|http):\/\/github.com\///' | sed -E 's/\.git$//' | sed 's/\/*$//')
+REPO_INPUT="$1"
+REPO_URL=""
 
-  # Validate format
-  if ! [[ "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+# If no input, use the default
+if [ -z "$REPO_INPUT" ]; then
+  REPO_URL="$DEFAULT_REPO"
+else
+  # Normalize the input
+  REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\///' | sed 's/\.git$//' | sed 's/\/$//')
+
+  # Validate the format
+  if [[ ! "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
     echo "Error: Invalid repository format."
     usage
   fi
-  REPO_PATH="gitmcp.io/$REPO_PATH"
+  REPO_URL="gitmcp.io/$REPO_PATH"
 fi
 
 # Confirmation message
-echo "Endpoint: $REPO_PATH"
+echo "Endpoint: $REPO_URL"
 
 # Execute goose session
-goose session --with-remote-extension "$REPO_PATH"
+goose session --with-remote-extension "$REPO_URL"
 
 # Error handling for goose command
 if [ $? -ne 0 ]; then
