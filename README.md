@@ -46,7 +46,7 @@ ask-repo [github_url|user/repo] [-- goose options]
     ask-repo dorogoy/ask-repo
     ```
 
-- **Use the default repository (`gitmcp.io/docs`):**
+- **Do not use a specific repository (ask the model):**
 
     ```bash
     ask-repo
@@ -55,7 +55,7 @@ ask-repo [github_url|user/repo] [-- goose options]
 - **Pass options to goose:**
 
     ```bash
-    ask-repo dorogoy/ask-repo -- --temperature 0.2
+    ask-repo block/goose -- --name goose-agent
     ```
 
 - **Show script version:**
@@ -89,3 +89,7 @@ Once the session starts, you can ask questions like:
 - "What is the main purpose of this repository?"
 - "Show me the implementation of the `ask-repo` function."
 - "What are the main dependencies of this project?"
+
+## Credits
+
+This tool is inspired by and built to work with the [gitmcp.io](https://gitmcp.io) project, which provides AI-powered access to GitHub repositories.
