@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # Default repository
-DEFAULT_REPO="gitmcp.io/docs"
+DEFAULT_REPO="https://gitmcp.io/docs"
 
 # Function to show usage
 usage() {
@@ -45,11 +45,6 @@ if [[ "${1:-}" == "-u" || "${1:-}" == "--upgrade" ]]; then
   fi
 fi
 
-# Version flag
-if [[ "${1:-}" == "-v" || "${1:-}" == "--version" ]]; then
-  echo "ask-repo version 1.0.0"
-  exit 0
-fi
 
 # Check for help flag
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -86,13 +81,28 @@ else
     REPO_URL="$DEFAULT_REPO"
   else
     # Normalize the input
-    REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\///' | sed 's/\.git$//' | sed 's/\/$//')
-    # Validate the format
-    if [[ ! "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
-      echo "Error: Invalid repository format: '$REPO_INPUT'" >&2
-      usage
+    # 1. Check for GitHub Pages URL: username.github.io/repo (with or without protocol)
+    if [[ "$REPO_INPUT" =~ ^(https?://)?([a-zA-Z0-9_-]+)\.github\.io/([a-zA-Z0-9_-]+) ]]; then
+      USERNAME="${BASH_REMATCH[2]}"
+      REPO="${BASH_REMATCH[3]}"
+      # Validate username/repo
+      if [[ -z "$USERNAME" || -z "$REPO" ]]; then
+        echo "Error: Malformed GitHub Pages URL: '$REPO_INPUT'" >&2
+        usage
+      fi
+      REPO_PATH="$USERNAME/$REPO"
+      REPO_URL="https://$USERNAME.gitmcp.io/$REPO"
+    else
+      # 2. Standard GitHub repo URL normalization
+      REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\///' | sed 's/\.git$//' | sed 's/\/$//')
+      # Validate the format
+      if [[ "$REPO_PATH" =~ ^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+$ ]]; then
+        REPO_URL="https://gitmcp.io/$REPO_PATH"
+      else
+        echo "Error: Invalid repository format: '$REPO_INPUT'" >&2
+        usage
+      fi
     fi
-    REPO_URL="https://gitmcp.io/$REPO_PATH"
   fi
 fi
 

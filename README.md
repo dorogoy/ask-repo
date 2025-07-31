@@ -1,6 +1,7 @@
+
 # ask-repo
 
-Ask questions to AI agents about the full content of public GitHub repositories.
+A bash utility to interact with GitHub repositories and GitHub Pages via the GitMCP service using the `goose` AI agent. Ask questions to AI agents about the full content of public GitHub repositories.
 
 ## Requirements
 
@@ -29,7 +30,6 @@ ask-repo [github_url|user/repo] [-- goose options]
 ```
 
 - You can pass additional options to the underlying `goose session` command by using `--`.
-- Use `ask-repo --version` to print the script version.
 - Use `ask-repo --upgrade` to automatically update the script to the latest version from GitHub.
 
 ### Examples
@@ -40,56 +40,40 @@ ask-repo [github_url|user/repo] [-- goose options]
     ask-repo https://github.com/dorogoy/ask-repo
     ```
 
-- **Use the shorthand format:**
-
-    ```bash
-    ask-repo dorogoy/ask-repo
-    ```
-
-- **Do not use a specific repository (ask the model):**
+- **Use the shorthand format (defaults to docs):**
 
     ```bash
     ask-repo
     ```
 
-- **Pass options to goose:**
+## Features
 
-    ```bash
-    ask-repo block/goose -- --name goose-agent
-    ```
+- Supports public GitHub repositories and GitHub Pages URLs
+- Normalizes various URL formats for seamless AI analysis
+- Launches interactive AI sessions for repository exploration
 
-- **Show script version:**
+## Supported URL Formats
 
-    ```bash
-    ask-repo --version
-    ```
+- GitHub repositories:
+  - `github.com/user/repo`
+  - `https://github.com/user/repo`
+  - `user/repo`
+- GitHub Pages:
+  - `username.github.io/repo`
+  - `https://username.github.io/repo`
+  - `http://username.github.io/repo`
+  - URLs with additional paths: `username.github.io/repo/path/to/file`
 
-- **Upgrade to the latest version:**
+## URL Transformation
 
-    ```bash
-    ask-repo --upgrade
-    ```
-
-## How it Works
-
-The script takes a GitHub repository URL or a `user/repo` string as input, normalizes it, and then constructs a `gitmcp.io` URL. It then initiates a `goose` session with the appropriate remote extension, allowing you to interact with the repository's content.
+- GitHub repository: `https://github.com/user/repo` → `https://gitmcp.io/user/repo`
+- GitHub Pages: `https://username.github.io/repo` → `https://username.gitmcp.io/repo`
 
 ## Error Handling
 
-The script includes error handling for:
+- Invalid or malformed URLs are rejected with a clear error message
+- Dependency on `goose` is checked before execution
 
-- **Invalid repository formats:** If the input doesn't match the expected formats, it will display a usage message.
-- **Missing `goose` installation:** It checks for the `goose` command and provides an error message if it's not found.
-- **`goose` command failures:** If the `goose` session fails to start, it will report an error.
+## License
 
-## Example Questions
-
-Once the session starts, you can ask questions like:
-
-- "What is the main purpose of this repository?"
-- "Show me the implementation of the `ask-repo` function."
-- "What are the main dependencies of this project?"
-
-## Credits
-
-This tool is inspired by and built to work with the [gitmcp.io](https://gitmcp.io) project, which provides AI-powered access to GitHub repositories.
+MIT
