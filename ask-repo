@@ -22,7 +22,6 @@ usage() {
   echo "  ask-repo dorogoy/ask-repo"
   echo "  ask-repo https://github.com/dorogoy/ask-repo.git"
   echo "  ask-repo dorogoy/ask-repo -- --temperature 0.2"
-  echo "  ask-repo --version"
   echo "  ask-repo --upgrade"
   exit 1
 }
