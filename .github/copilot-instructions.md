@@ -10,10 +10,13 @@ This is a bash utility script that provides a convenient wrapper around the `goo
 - **External dependency**: Requires `goose` CLI tool to be installed and available in PATH
 - **Service integration**: Connects to `gitmcp.io` service which provides GitHub repository access for AI agents
 
+
 ## Key Patterns
 
 ### URL Normalization Pipeline
-The script implements a multi-step normalization process:
+The script implements a multi-step normalization process for both GitHub repository and GitHub Pages URLs:
+
+#### GitHub Repository URLs
 ```bash
 # Input: https://github.com/user/repo.git
 # Step 1: Strip protocol and domain
@@ -22,6 +25,42 @@ REPO_PATH=$(echo "$REPO_INPUT" | sed -E 's/^(https?:\/\/)?(www\.)?github\.com\//
 REPO_PATH=$(echo "$REPO_PATH" | sed 's/\.git$//' | sed 's/\/$//')
 # Result: user/repo
 ```
+
+#### GitHub Pages URLs
+```bash
+# Input: https://username.github.io/repo or username.github.io/repo
+# Step 1: Detect username.github.io/repo pattern
+# Step 2: Extract username and repo
+# Step 3: Transform to username.gitmcp.io/repo (do not preserve subpaths)
+# Result: https://username.gitmcp.io/repo
+```
+
+### URL Construction
+- Standard repo: `user/repo` → `https://gitmcp.io/user/repo`
+- GitHub Pages: `username.github.io/repo` → `https://username.gitmcp.io/repo`
+
+### Supported Input Formats
+- GitHub repository URLs (with or without protocol, with or without .git)
+- GitHub Pages URLs (with or without protocol, with or without subpaths)
+
+### Expected Behavior for GitHub Pages URLs
+- Recognizes URLs like `username.github.io/repo`, `https://username.github.io/repo`, and `http://username.github.io/repo`
+- Transforms to `https://username.gitmcp.io/repo` for GitMCP service
+- Preserves any additional subpaths or query parameters
+- Validates that both username and repo are present
+- Rejects malformed GitHub Pages URLs with a clear error message
+
+### Relationship to Repository Structure
+- The `username.github.io/repo` pattern corresponds to the `repo` repository owned by `username` on GitHub
+- The transformation allows AI agents to analyze the source repository behind a GitHub Pages site
+
+### Error Handling for GitHub Pages URLs
+- Malformed or incomplete GitHub Pages URLs are rejected
+- Only valid `username/repo` pairs are accepted
+
+### Example Transformations
+- `https://username.github.io/repo` → `https://username.gitmcp.io/repo`
+- `username.github.io/repo` → `https://username.gitmcp.io/repo`
 
 ### Default Behavior
 - When no repository is specified, defaults to `gitmcp.io/docs`
